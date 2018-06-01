@@ -3,6 +3,3 @@
 Butler is a command line client for jenkins.
 
 It will eventually be a shell, which will have mini commands tailored to jenkins.
-
-Most of this does not work right now.
-
