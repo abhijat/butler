@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"strings"
 )
 
 func asBytes(response *http.Response) []byte {
@@ -32,16 +32,25 @@ func getResponseFromURL(url string) (*http.Response, error) {
 		log.Fatal(err)
 	}
 
-	addAuthHeader(request, os.Getenv("BUTLER_USER"), os.Getenv("BUTLER_PASSWORD"))
+	username, password := acquireCredentials()
+	addAuthHeader(request, username, password)
 
 	client := http.Client{}
-	return client.Do(request)
+	response, err := client.Do(request)
+
+	if !strings.HasPrefix(response.Status, "2") {
+		errorDescription, _ := ioutil.ReadAll(response.Body)
+		err := newHTTPError(response.StatusCode, string(errorDescription))
+		return nil, err
+	}
+
+	return response, err
 }
 
-func getURLContentAsString(url string) string {
+func getURLContentAsString(url string) (string, error) {
 	response, err := getResponseFromURL(url)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	defer response.Body.Close()
@@ -50,5 +59,5 @@ func getURLContentAsString(url string) string {
 		log.Fatal(err)
 	}
 
-	return string(data)
+	return string(data), nil
 }

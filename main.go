@@ -1,18 +1,28 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 )
 
-func main() {
+func runJob() {
 	jobName := "axon-ca"
-	status := getJobStatus(jobName, "lastBuild")
-	b, err := json.MarshalIndent(status, "", "  ")
+
+	params := url.Values{}
+	params.Set("run", "foo")
+
+	responseCode, err := triggerBuild(jobName, params)
 	if err != nil {
-		log.Fatal("failed to marshal response:", err)
+		log.Fatal(err)
 	}
 
-	fmt.Println(string(b))
+	if responseCode == 201 {
+		fmt.Printf("triggered build of %s, follow the output below:\n\n", jobName)
+		tailJobLatest(jobName)
+	}
+}
+
+func main() {
+	runJob()
 }

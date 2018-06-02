@@ -20,13 +20,18 @@ func jobStatusURL(jobName, jobNum string) string {
 }
 
 func getJobStatus(jobName, jobNum string) *jobStatus {
+
 	url := jobStatusURL(jobName, jobNum)
-	data := getURLContentAsString(url)
+	data, err := getURLContentAsString(url)
+
+	if err != nil {
+		log.Fatal("failed to get job state: ", err)
+	}
 
 	var status jobStatus
-	err := json.NewDecoder(strings.NewReader(data)).Decode(&status)
+	err = json.NewDecoder(strings.NewReader(data)).Decode(&status)
 	if err != nil {
-		log.Fatal("error decoding response:", err)
+		log.Fatal("error decoding job status response:", err)
 	}
 
 	return &status
